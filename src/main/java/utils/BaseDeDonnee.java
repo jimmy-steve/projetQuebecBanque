@@ -12,7 +12,7 @@ public class BaseDeDonnee {
     public static void seConnecter() throws SQLException {
         System.out.println("Connexion établie avec succès avec la bd MySQL ....\n");
         connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/compte", "root",
-                "Lareaultlaval7");
+                "MOTDEPASSE");
     }
 
     public static void afficherVraiDonner() throws SQLException {
