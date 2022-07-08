@@ -1,11 +1,12 @@
 package utils;
 
+import javax.swing.table.DefaultTableModel;
 import java.sql.*;
 
 public class BaseDeDonnee {
-    static Connection connection = null;
-    static PreparedStatement prepareStatement = null;
-    static String query = null;
+    public static Connection connection = null;
+    public static PreparedStatement prepareStatement = null;
+    public static String query = null;
     static ResultSet resultSet = null;
 
     public static void seConnecter() throws SQLException {
@@ -55,7 +56,7 @@ public class BaseDeDonnee {
             String typeCompte = resultSet.getString(5);
             double total = resultSet.getDouble(6);
 
-            System.out.println( noCarte + "" + dateExp + "" + emailClient + "" + typeCompte + "" + total);
+            System.out.println(noCarte + "" + dateExp + "" + emailClient + "" + typeCompte + "" + total);
         }
         resultSet.close();
     }

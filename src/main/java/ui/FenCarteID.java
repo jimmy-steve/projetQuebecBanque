@@ -7,6 +7,7 @@ package ui;
 import modele.Carte;
 import modele.Compte;
 import modele.RegistreCompte;
+import utils.BaseDeDonnee;
 
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
@@ -28,11 +29,6 @@ public class FenCarteID extends javax.swing.JFrame {
     static private LocalDate today;
     static private double depot;
     static private double retrait;
-
-    static Connection connection = null;
-    static PreparedStatement prepareStatement = null;
-    static String query = null;
-    static ResultSet resultSet = null;
 
     /**
      * Creates new form FenCarteID
@@ -65,9 +61,9 @@ public class FenCarteID extends javax.swing.JFrame {
         }
         //---------------------------------------------------rechercher client courant par email
         try {
-            seConnecter();
+            BaseDeDonnee.seConnecter();
             rechercheByEmail(courriel);
-            seDeconnecter();
+            BaseDeDonnee.seDeconnecter();
         } catch (SQLException e) {
             e.getStackTrace();
         }
@@ -75,9 +71,9 @@ public class FenCarteID extends javax.swing.JFrame {
 
         //---------------------------------------------------afficher la liste des compte par courriel
         try {
-            seConnecter();
+            BaseDeDonnee.seConnecter();
             afficherListeCompte(courriel);
-            seDeconnecter();
+            BaseDeDonnee.seDeconnecter();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -88,22 +84,10 @@ public class FenCarteID extends javax.swing.JFrame {
 
     }
 
-    private static void seConnecter() throws SQLException {
-        System.out.println("Connexion établie avec succès avec la bd MySQL ....\n");
-        connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/compte", "root",
-                "Lareaultlaval7");
-    }
-
-    private static void seDeconnecter() throws SQLException {
-        System.out.println("\nFermeture de la connexion...");
-        prepareStatement.close();
-        connection.close();
-    }
-
     private void afficherListeCompte(String courriel) throws SQLException {
-        query = "SELECT * FROM carte WHERE email = '" + courriel + "'";
-        prepareStatement = connection.prepareStatement(query);
-        ResultSet resultSet = prepareStatement.executeQuery(query);
+        BaseDeDonnee.query = "SELECT * FROM carte WHERE email = '" + courriel + "'";
+        BaseDeDonnee.prepareStatement = BaseDeDonnee.connection.prepareStatement(BaseDeDonnee.query);
+        ResultSet resultSet = BaseDeDonnee.prepareStatement.executeQuery(BaseDeDonnee.query);
         while (resultSet.next()) {
 
             long noCarte = resultSet.getLong(2);
@@ -126,10 +110,10 @@ public class FenCarteID extends javax.swing.JFrame {
 
     public void rechercheByEmail(String para_email) throws SQLException {
 
-        query = "SELECT * FROM compte WHERE email = '" + para_email + "'";
+        BaseDeDonnee.query = "SELECT * FROM compte WHERE email = '" + para_email + "'";
 
-        prepareStatement = connection.prepareStatement(query);
-        ResultSet resultSet = prepareStatement.executeQuery(query);
+        BaseDeDonnee.prepareStatement = BaseDeDonnee.connection.prepareStatement(BaseDeDonnee.query);
+        ResultSet resultSet = BaseDeDonnee.prepareStatement.executeQuery(BaseDeDonnee.query);
 
 
         while (resultSet.next()) {
@@ -180,7 +164,7 @@ public class FenCarteID extends javax.swing.JFrame {
         lblNomClient.setText(txtPrenom.getText() + " " + txtNom.getText());
 
         txtNumeroCarte.setText("0000 0000 0000 0000");
-        txtDateExpiration.setText("00/00");
+        //txtDateExpiration.setText("00/00");
 
 
         txtNumeroCarte1.setText("0000 0000 0000 0000");
@@ -1056,55 +1040,61 @@ public class FenCarteID extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(null, "Il faut ajouter plus d'argent pour activer");
         } else {
             JOptionPane.showMessageDialog(null, "Félicitation");
-            creationsID();
-            String compte = txtNumeroCarte.getText();
-            txtNumeroCompteAffichage.setText(compte);
-            txtDateExpAffichage.setText(dateEx);
-            txtNumeroCarte1.setText(compte);
-
-            Carte carte = new Carte();
-            carte.setIdCarte(0);
-            String nombre1 = compte.substring(0, 4);
-            String nombre2 = compte.substring(5, 9);
-            String nombre3 = compte.substring(10, 14);
-            String nombre4 = compte.substring(15);
-            long compteSubString = Long.parseLong(nombre1 + nombre2 + nombre3 + nombre4);
-            System.out.println(nombre1 + nombre2 + nombre3 + nombre4);
-
-            carte.setNoCarte(compteSubString);
-
-            carte.setDateExp(dateEx);
-            carte.setEmail(courriel);
-            carte.setTypeCompte(txtTypeCompte.getText());
-            carte.setTotal(Double.parseDouble(txtMontant.getText()));
-
-            System.out.println("Voici la dateExp " + dateEx);
-
-
             try {
-                seConnecter();
-                ajouterCarte(compteSubString, courriel, txtTypeCompte.getText(), Double.parseDouble(txtMontant.getText()));
-                seDeconnecter();
-                JOptionPane.showMessageDialog(null, ", Félicitation votre carte a été créé avec succès \n"
-                        , "Succès", JOptionPane.INFORMATION_MESSAGE);
+                creationsID();
+                String compte = txtNumeroCarte.getText();
+                txtNumeroCompteAffichage.setText(compte);
+                txtDateExpAffichage.setText(dateEx);
+                txtNumeroCarte1.setText(compte);
+
+                Carte carte = new Carte();
+                carte.setIdCarte(0);
+                String nombre1 = compte.substring(0, 4);
+                String nombre2 = compte.substring(5, 9);
+                String nombre3 = compte.substring(10, 14);
+                String nombre4 = compte.substring(15);
+
+                long compteSubString = Long.parseLong(nombre1 + nombre2 + nombre3 + nombre4);
+
+                System.out.println(nombre1 + nombre2 + nombre3 + nombre4);
+
+                carte.setNoCarte(compteSubString);
+
+                carte.setDateExp(dateEx);
+                carte.setEmail(courriel);
+                carte.setTypeCompte(txtTypeCompte.getText());
+                carte.setTotal(Double.parseDouble(txtMontant.getText()));
+
+                System.out.println("Voici la dateExp " + dateEx);
 
 
-            } catch (SQLException e) {
-                //e.printStackTrace();
+                try {
+                    BaseDeDonnee.seConnecter();
+                    ajouterCarte(compteSubString, courriel, txtTypeCompte.getText(), Double.parseDouble(txtMontant.getText()));
+                    BaseDeDonnee.seDeconnecter();
+                    JOptionPane.showMessageDialog(null, ", Félicitation votre carte a été créé avec succès \n"
+                            , "Succès", JOptionPane.INFORMATION_MESSAGE);
+
+
+                } catch (SQLException e) {
+                    //e.printStackTrace();
+                    JOptionPane.showMessageDialog(null, "Erreur de création de carte \n"
+                            , "Erreur de saisie", JOptionPane.ERROR_MESSAGE);
+                } finally {
+                    DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+                    model.setRowCount(0);
+                    try {
+                        BaseDeDonnee.seConnecter();
+                        setBtnRafraichir();
+                        BaseDeDonnee.seDeconnecter();
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
+                }
+            } catch (NumberFormatException e) {
                 JOptionPane.showMessageDialog(null, "Erreur de création de carte \n"
                         , "Erreur de saisie", JOptionPane.ERROR_MESSAGE);
-            } finally {
-                DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
-                model.setRowCount(0);
-                try {
-                    seConnecter();
-                    setBtnRafraichir();
-                    seDeconnecter();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
             }
-
 
         }
 
@@ -1142,12 +1132,12 @@ public class FenCarteID extends javax.swing.JFrame {
 
     private void ajouterCarte(long no_carte, String email, String type_compte, double total) throws SQLException {
         System.out.println("Insertion effectuée...");
-        query = "INSERT INTO carte (no_carte,date_exp, email, " +
+        BaseDeDonnee.query = "INSERT INTO carte (no_carte,date_exp, email, " +
                 "type_compte,total) VALUES" +
                 "(" + no_carte + ",'" + today + "','" + email + "'," +
                 " '" + type_compte + "', " + total + ")";
-        prepareStatement = connection.prepareStatement(query);
-        prepareStatement.executeUpdate(query);
+        BaseDeDonnee.prepareStatement = BaseDeDonnee.connection.prepareStatement(BaseDeDonnee.query);
+        BaseDeDonnee.prepareStatement.executeUpdate(BaseDeDonnee.query);
     }
 
 
@@ -1170,18 +1160,18 @@ public class FenCarteID extends javax.swing.JFrame {
 
             }
             try {
-                seConnecter();
+                BaseDeDonnee.seConnecter();
                 ajouterMontantCarte(depot, compteSubString);
-                seDeconnecter();
+                BaseDeDonnee.seDeconnecter();
                 JOptionPane.showMessageDialog(null, ", Félicitation vous avez ajouté : " + depot + " $ à votre compte\n"
                         , "Succès", JOptionPane.INFORMATION_MESSAGE);
 
                 DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
                 model.setRowCount(0);
                 try {
-                    seConnecter();
+                    BaseDeDonnee.seConnecter();
                     setBtnRafraichir();
-                    seDeconnecter();
+                    BaseDeDonnee.seDeconnecter();
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }
@@ -1211,18 +1201,18 @@ public class FenCarteID extends javax.swing.JFrame {
 
             }
             try {
-                seConnecter();
+                BaseDeDonnee.seConnecter();
                 retirerMontantCarte(retrait, compteSubString);
-                seDeconnecter();
+                BaseDeDonnee.seDeconnecter();
                 JOptionPane.showMessageDialog(null, ", Vous venez de retirer  : " + retrait + " $ à votre compte\n"
                         , "Succès", JOptionPane.INFORMATION_MESSAGE);
 
                 DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
                 model.setRowCount(0);
                 try {
-                    seConnecter();
+                    BaseDeDonnee.seConnecter();
                     setBtnRafraichir();
-                    seDeconnecter();
+                    BaseDeDonnee.seDeconnecter();
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }
@@ -1241,18 +1231,18 @@ public class FenCarteID extends javax.swing.JFrame {
 
     private void retirerMontantCarte(double retrait, long numeroCarte) throws SQLException {
         System.out.println("Update d'un enregistrement");
-        query = "UPDATE carte set total = total-" + retrait + " WHERE no_carte = " + numeroCarte + " ";
-        prepareStatement = connection.prepareStatement(query);
-        prepareStatement.executeUpdate(query);
-        System.out.println("Mise a jour effectuée : " + prepareStatement);
+        BaseDeDonnee.query = "UPDATE carte set total = total-" + retrait + " WHERE no_carte = " + numeroCarte + " ";
+        BaseDeDonnee.prepareStatement = BaseDeDonnee.connection.prepareStatement(BaseDeDonnee.query);
+        BaseDeDonnee.prepareStatement.executeUpdate(BaseDeDonnee.query);
+        System.out.println("Mise a jour effectuée : " + BaseDeDonnee.prepareStatement);
     }
 
     private void ajouterMontantCarte(double depot, long numeroCarte) throws SQLException {
         System.out.println("Update d'un enregistrement");
-        query = "UPDATE carte set total = total+" + depot + " WHERE no_carte = " + numeroCarte + " ";
-        prepareStatement = connection.prepareStatement(query);
-        prepareStatement.executeUpdate(query);
-        System.out.println("Mise a jour effectuée : " + prepareStatement);
+        BaseDeDonnee.query = "UPDATE carte set total = total+" + depot + " WHERE no_carte = " + numeroCarte + " ";
+        BaseDeDonnee.prepareStatement = BaseDeDonnee.connection.prepareStatement(BaseDeDonnee.query);
+        BaseDeDonnee.prepareStatement.executeUpdate(BaseDeDonnee.query);
+        System.out.println("Mise a jour effectuée : " + BaseDeDonnee.prepareStatement);
     }
 
     private void txtNumeroCarteFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtNumeroCarteFocusGained
@@ -1291,9 +1281,9 @@ public class FenCarteID extends javax.swing.JFrame {
         setDateExpiration();
 
         try {
-            seConnecter();
+            BaseDeDonnee.seConnecter();
             setBtnRafraichir();
-            seDeconnecter();
+            BaseDeDonnee.seDeconnecter();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -1337,9 +1327,9 @@ public class FenCarteID extends javax.swing.JFrame {
         chkRetrait.setSelected(false);
         chargerPage();
 
-        query = "SELECT * FROM carte WHERE email = '" + courriel + "'";
-        prepareStatement = connection.prepareStatement(query);
-        ResultSet resultSet = prepareStatement.executeQuery(query);
+        BaseDeDonnee.query = "SELECT * FROM carte WHERE email = '" + courriel + "'";
+        BaseDeDonnee.prepareStatement = BaseDeDonnee.connection.prepareStatement(BaseDeDonnee.query);
+        ResultSet resultSet = BaseDeDonnee.prepareStatement.executeQuery(BaseDeDonnee.query);
         while (resultSet.next()) {
 
             long noCarte = resultSet.getLong(2);

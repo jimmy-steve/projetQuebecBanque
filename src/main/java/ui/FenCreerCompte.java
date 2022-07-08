@@ -6,6 +6,7 @@ package ui;
 
 import modele.Compte;
 import modele.RegistreCompte;
+import utils.BaseDeDonnee;
 
 import java.awt.Color;
 import java.awt.event.FocusEvent;
@@ -16,16 +17,9 @@ import javax.swing.*;
  * @author lafon
  */
 public class FenCreerCompte extends javax.swing.JFrame {
-
-    //private JFrame fenCreerCompte;
     private JFrame fenSeConnecter;
     private RegistreCompte registreCompte;
     RegistreCompte listing;
-
-    static Connection connection = null;
-    static PreparedStatement prepareStatement = null;
-    static String query = null;
-    static ResultSet resultSet = null;
 
     /**
      * Creates new form FenCreerCompte
@@ -44,18 +38,6 @@ public class FenCreerCompte extends javax.swing.JFrame {
     public FenCreerCompte(RegistreCompte listing) {
         this();
         this.listing = listing;
-    }
-
-    private static void seConnecter() throws SQLException {
-        System.out.println("Connexion établie avec succès avec la bd MySQL ....\n");
-        connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/compte", "root",
-                "Lareaultlaval7");
-    }
-
-    private static void seDeconnecter() throws SQLException {
-        System.out.println("\nFermeture de la connexion...");
-        prepareStatement.close();
-        connection.close();
     }
 
     /**
@@ -499,65 +481,65 @@ public class FenCreerCompte extends javax.swing.JFrame {
                                      String prenomClient, int jourNaissance, int moisNaissance, int anneeNaissance,
                                      String pays, String motDePasse, String ville, String telephone, String adresse) throws SQLException {
 
-        query = "INSERT INTO compte (email,type_compte,titulaire, nom_client, " +
+        BaseDeDonnee.query = "INSERT INTO compte (email,type_compte,titulaire, nom_client, " +
                 "prenom_client,jour_naissance,mois_naissance,annee_naissance,pays_naissance,mot_de_passe, ville_resident, numero_telephone, adresse) VALUES" +
                 "('" + email + "', '" + typeCompte + "','" + titulaire + "', '" + nomClient + "'," +
                 " '" + prenomClient + "', " + jourNaissance + " , " + moisNaissance + " , " + anneeNaissance + "," +
                 "'" + pays + "','" + motDePasse + "', '" + ville + "', '" + telephone + "', '" + adresse + "');";
         System.out.println("Insertion effectuée...");
-        prepareStatement = connection.prepareStatement(query);
-        prepareStatement.executeUpdate(query);
+        BaseDeDonnee.prepareStatement = BaseDeDonnee.connection.prepareStatement(BaseDeDonnee.query);
+        BaseDeDonnee.prepareStatement.executeUpdate(BaseDeDonnee.query);
     }
 
     private void btnCreerActionPerformed(java.awt.event.ActionEvent evt) {
         boolean statut = validerDonnee();
 //        if (statut) {
-            Compte compte = new Compte();
-            compte.setEmail(txtEmail.getText());
-            compte.setTypeCompte(jComboTypeCompte.getSelectedItem().toString());
-            compte.setTitulaire(jComboGender.getSelectedItem().toString());
-            compte.setNomClient(txtNom.getText());
-            compte.setPrenomClient(txtPrenom.getText());
+        Compte compte = new Compte();
+        compte.setEmail(txtEmail.getText());
+        compte.setTypeCompte(jComboTypeCompte.getSelectedItem().toString());
+        compte.setTitulaire(jComboGender.getSelectedItem().toString());
+        compte.setNomClient(txtNom.getText());
+        compte.setPrenomClient(txtPrenom.getText());
 
-            try {
-                compte.setJourNaissance(Integer.parseInt(txtJourNaissance.getText()));
-            } catch (NumberFormatException e) {
-                e.getStackTrace();
-                JOptionPane.showMessageDialog(null, "Saisir un nombre entier pour le jour de naissance\n"
-                        , "Erreur de saisie", JOptionPane.ERROR_MESSAGE);
-            }
+        try {
+            compte.setJourNaissance(Integer.parseInt(txtJourNaissance.getText()));
+        } catch (NumberFormatException e) {
+            e.getStackTrace();
+            JOptionPane.showMessageDialog(null, "Saisir un nombre entier pour le jour de naissance\n"
+                    , "Erreur de saisie", JOptionPane.ERROR_MESSAGE);
+        }
 
-            try {
-                compte.setMoisNaissance(Integer.parseInt(txtMoisNaissance.getText()));
-            } catch (NumberFormatException e) {
-                e.getStackTrace();
-                JOptionPane.showMessageDialog(null, "Saisir un nombre entier pour le mois de naissance\n"
-                        , "Erreur de saisie", JOptionPane.ERROR_MESSAGE);
-            }
+        try {
+            compte.setMoisNaissance(Integer.parseInt(txtMoisNaissance.getText()));
+        } catch (NumberFormatException e) {
+            e.getStackTrace();
+            JOptionPane.showMessageDialog(null, "Saisir un nombre entier pour le mois de naissance\n"
+                    , "Erreur de saisie", JOptionPane.ERROR_MESSAGE);
+        }
 
-            try {
-                compte.setAnneeNaissance(Integer.parseInt(txtAnneeNaisance.getText()));
-            } catch (NumberFormatException e) {
-                e.getStackTrace();
-                JOptionPane.showMessageDialog(null, "Saisir un nombre entier pour le jour de naissance\n"
-                        , "Erreur de saisie", JOptionPane.ERROR_MESSAGE);
-            }
+        try {
+            compte.setAnneeNaissance(Integer.parseInt(txtAnneeNaisance.getText()));
+        } catch (NumberFormatException e) {
+            e.getStackTrace();
+            JOptionPane.showMessageDialog(null, "Saisir un nombre entier pour le jour de naissance\n"
+                    , "Erreur de saisie", JOptionPane.ERROR_MESSAGE);
+        }
 
 
-            compte.setPays(txtPaysResidence.getText());
-            compte.setMotDePasse(txtMotDePasse.getText());
-            compte.setVille(txtPaysResidence.getText());
-            compte.setTelephone(txtTelephone.getText());
-            compte.setAdresse(txtAdresse.getText());
+        compte.setPays(txtPaysResidence.getText());
+        compte.setMotDePasse(txtMotDePasse.getText());
+        compte.setVille(txtPaysResidence.getText());
+        compte.setTelephone(txtTelephone.getText());
+        compte.setAdresse(txtAdresse.getText());
 
         if (statut) {
             try {
-                seConnecter();
+                BaseDeDonnee.seConnecter();
                 ajouterCompte(compte.getEmail(), compte.getTypeCompte(), compte.getTitulaire(),
                         compte.getNomClient(), compte.getPrenomClient(), compte.getJourNaissance(), compte.getMoisNaissance(),
                         compte.getAnneeNaissance(), compte.getPays(), compte.getMotDePasse(), compte.getVille(), compte.getTelephone(),
                         compte.getAdresse());
-                seDeconnecter();
+                BaseDeDonnee.seDeconnecter();
 
                 JOptionPane.showMessageDialog(null, compte.getTitulaire() + " " + compte.getPrenomClient() + ", Félicatation votre compte " + compte.getTypeCompte() + " a ete creer avec succès \n"
                         , "Succès", JOptionPane.INFORMATION_MESSAGE);
@@ -570,7 +552,8 @@ public class FenCreerCompte extends javax.swing.JFrame {
 
         }
     }
-    private boolean validerDonnee(){
+
+    private boolean validerDonnee() {
         boolean flag = true;
         if (txtNom.getText().isEmpty()) {
             flag = false;
